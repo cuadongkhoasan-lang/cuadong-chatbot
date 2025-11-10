@@ -5,13 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Trợ lý gói sinh Cửa Đông</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script type="importmap">
-{
-  "imports": {
-    "@google/generative-ai": "https://esm.run/@google/generative-ai"
-  }
-}
-</script>
 </head>
 
 <body class="bg-gray-100">
@@ -33,58 +26,59 @@
 </a>
 
 <script type="module">
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const apiKey = "AIzaSyCL2Doc6pHGVFewYxYulHM91GV0WZsKYpM";
-const genAI = new GoogleGenerativeAI(apiKey);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
 let knowledge = [];
 
-fetch("data.json").then(r => r.json()).then(d => {
-  knowledge = [
-    d.hospital.name, d.hospital.address, d.hospital.hotline, d.hospital.website,
-    ...d.packages.flatMap(p => [
-      p.package_name,
-      p.room_type,
-      ...Object.entries(p.prices).map(([k,v]) => `${p.package_name} - ${k}: ${v}`),
-      ...p.included.map(i => `${p.package_name} - bao gồm: ${i}`)
-    ]),
-    ...d.extra_fees,
-    ...d.promotions,
-    ...d.refund_policy
-  ];
-});
+// ✅ Load JSON
+fetch("data.json")
+  .then(r => r.json())
+  .then(d => {
+    knowledge = [
+      d.hospital.name, d.hospital.address, d.hospital.hotline, d.hospital.website,
+      ...d.packages.flatMap(p => [
+        p.package_name,
+        p.room_type,
+        ...Object.entries(p.prices).map(([k,v]) => `${p.package_name} - ${k}: ${v}`),
+        ...p.included.map(i => `${p.package_name} - bao gồm: ${i}`)
+      ]),
+      ...d.extra_fees,
+      ...d.promotions,
+      ...d.refund_policy
+    ];
+  });
 
+// ✅ Tìm kiếm thông minh trong JSON
 function search(q){
-  const t = q.toLowerCase().split(/\s+/).filter(x => x.length>1);
+  const t = q.toLowerCase().split(/\s+/).filter(x => x.length > 1);
   return knowledge.filter(l => {
     const L = l.toLowerCase();
     return t.some(k => L.includes(k));
   });
 }
 
+// ✅ Thêm message vào UI
 function addMsg(text, from="bot"){
   const chat = document.getElementById("chat");
   const div = document.createElement("div");
-  div.className = from==="bot" ?
-      "bg-gray-200 p-2 my-1 rounded" :
-      "bg-blue-600 text-white p-2 my-1 rounded ml-auto w-fit";
+  div.className = from==="bot"
+    ? "bg-gray-200 p-2 my-1 rounded"
+    : "bg-blue-600 text-white p-2 my-1 rounded ml-auto w-fit";
   div.innerText = text;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
 
+// ✅ Gửi message
 document.getElementById("btn").onclick = async () => {
   const q = document.getElementById("inp").value.trim();
   if(!q) return;
+
   addMsg(q, "user");
   document.getElementById("inp").value = "";
 
   const matched = search(q);
-  const ctx = matched.length ?
-      matched.join("\n") :
-      "KHÔNG CÓ DỮ LIỆU PHÙ HỢP TRONG JSON.\nHãy trả về: Trong dữ liệu gói sinh hiện tại chưa có thông tin này. Vui lòng liên hệ hotline 0238.626.9999.";
+  const ctx = matched.length
+    ? matched.join("\n")
+    : "KHÔNG CÓ DỮ LIỆU PHÙ HỢP TRONG JSON.\nHãy trả về: Trong dữ liệu gói sinh hiện tại chưa có thông tin này. Vui lòng liên hệ hotline 0238.626.9999.";
 
   const prompt = `
 Bạn là trợ lý gói sinh. Chỉ trả lời dựa trên dữ liệu sau:
@@ -99,10 +93,17 @@ Nếu dữ liệu chứa "KHÔNG CÓ DỮ LIỆU PHÙ HỢP TRONG JSON" thì tr�
 Câu hỏi: "${q}"
   `;
 
-  try{
-    const result = await model.generateContent(prompt);
-    addMsg(result.response.text(), "bot");
-  }catch(e){
+  try {
+    // ✅ Gọi Netlify serverless function
+    const res = await fetch("/.netlify/functions/gemini", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt })
+    });
+
+    const data = await res.json();
+    addMsg(data.text || "Lỗi phản hồi.");
+  } catch(e) {
     addMsg("Lỗi kết nối AI.","bot");
   }
 };
