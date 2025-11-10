@@ -1,0 +1,127 @@
+{
+  "hospital": {
+    "name": "Bệnh viện Đa khoa Cửa Đông",
+    "address": "136 và 143 Nguyễn Phong Sắc, TP Vinh",
+    "hotline": "0974 035 456",
+    "website": "benhviencuadong.vn"
+  },
+  "packages": [
+    {
+      "package_name": "Gói Yêu Thương",
+      "room_type": "Phòng 4-6 sản phụ",
+      "prices": {
+        "sinh_thuong_bhyt": 6600000,
+        "sinh_thuong_dich_vu": 8500000,
+        "sinh_mo_bhyt": 8500000,
+        "sinh_mo_dich_vu": 12500000
+      },
+      "included": [
+        "Khám trước sinh",
+        "Bác sĩ trực tiếp đỡ sinh/mổ",
+        "Ghế da nâng dành cho người nhà (01 ghế)",
+        "Nôi dành cho bé",
+        "Siêu âm sàng lọc cho bé (01 lần)",
+        "Siêu âm kiểm tra trước khi xuất viện",
+        "Nữ hộ sinh thay băng, rửa vết thương cho mẹ",
+        "Thuốc và vật tư tiêu hao theo chỉ định bác sĩ",
+        "Kiểm soát nhiễm khuẩn, hồ sơ, quần áo nội trú",
+        "Lưu viện: 03 ngày đối với sinh thường, 06 ngày đối với sinh mổ",
+        "Tặng 01 bộ đồ sơ sinh + hình lưu niệm",
+        "Tiêm vitamin K và viêm gan B (mũi 0)",
+        "Suất ăn hàng ngày cho mẹ",
+        "Bác sĩ khám mẹ và bé hàng ngày",
+        "Tắm và chăm sóc rốn cho bé"
+      ]
+    },
+    {
+      "package_name": "Gói Hạnh Phúc",
+      "room_type": "Phòng 2-3 sản phụ",
+      "prices": {
+        "sinh_thuong_bhyt": 8700000,
+        "sinh_thuong_dich_vu": 10500000,
+        "sinh_mo_bhyt": 11700000,
+        "sinh_mo_dich_vu": 15700000
+      },
+      "included": [
+        "Khám trước sinh",
+        "Bác sĩ trực tiếp đỡ sinh/mổ",
+        "Ghế da nâng dành cho người nhà (01 ghế)",
+        "Nôi dành cho bé",
+        "Siêu âm sàng lọc cho bé (01 lần)",
+        "Siêu âm kiểm tra trước khi xuất viện",
+        "Nữ hộ sinh thay băng, rửa vết thương cho mẹ",
+        "Thuốc và vật tư tiêu hao theo chỉ định bác sĩ",
+        "Kiểm soát nhiễm khuẩn, hồ sơ, quần áo nội trú",
+        "Lưu viện: 03 ngày đối với sinh thường, 06 ngày đối với sinh mổ",
+        "Tặng 01 bộ đồ sơ sinh + hình lưu niệm",
+        "Tiêm vitamin K và viêm gan B (mũi 0)",
+        "Suất ăn hàng ngày cho mẹ",
+        "Bác sĩ khám mẹ và bé hàng ngày",
+        "Tắm và chăm sóc rốn cho bé",
+        "Xông phụ khoa (miễn phí 2 lần)",
+        "Massage ngực kích sữa (01 lần)"
+      ]
+    },
+    {
+      "package_name": "Gói Toàn Diện",
+      "room_type": "Phòng 1 sản phụ (phòng riêng)",
+      "prices": {
+        "sinh_thuong_bhyt": 12700000,
+        "sinh_thuong_dich_vu": 14600000,
+        "sinh_mo_bhyt": 17400000,
+        "sinh_mo_dich_vu": 21400000
+      },
+      "included": [
+        "Khám trước sinh",
+        "Bác sĩ trực tiếp đỡ sinh/mổ",
+        "Ghế da nâng dành cho người nhà (01 ghế)",
+        "Nôi dành cho bé",
+        "Siêu âm sàng lọc cho bé (01 lần)",
+        "Siêu âm kiểm tra trước khi xuất viện",
+        "Nữ hộ sinh thay băng, rửa vết thương cho mẹ",
+        "Thuốc và vật tư tiêu hao theo chỉ định bác sĩ",
+        "Kiểm soát nhiễm khuẩn, hồ sơ, quần áo nội trú",
+        "Lưu viện: 03 ngày đối với sinh thường, 06 ngày đối với sinh mổ",
+        "Tặng 01 bộ đồ sơ sinh + hình lưu niệm",
+        "Tiêm vitamin K và viêm gan B (mũi 0)",
+        "Suất ăn hàng ngày cho mẹ",
+        "Bác sĩ khám mẹ và bé hàng ngày",
+        "Tắm và chăm sóc rốn cho bé",
+        "Xông phụ khoa (miễn phí 3 lần)",
+        "Massage ngực kích sữa",
+        "Chăm sóc da mặt trẻ sơ sinh (nếu cần)"
+      ]
+    }
+  ],
+  "extra_fees": [
+    "Phòng lưu trú tăng thêm: 350.000đ/ngày (Gói Yêu Thương)",
+    "Phòng lưu trú tăng thêm: 700.000đ/ngày (Gói Hạnh Phúc)",
+    "Phòng lưu trú tăng thêm: 1.250.000đ/ngày (Gói Toàn Diện)",
+    "Chiếu Plasma lạnh: 300.000đ/lần",
+    "Chiếu đèn vàng da: 300.000đ/lần",
+    "Gội đầu: 80.000đ/lần",
+    "Massage ngực kích sữa: 150.000đ/lần",
+    "Massage thư giãn: 200.000đ/lần",
+    "Ngâm chân thảo dược: 50.000đ/lần",
+    "Chăm sóc da mặt: 200.000đ/lần",
+    "Bác sĩ nội viện theo yêu cầu: 1.000.000đ",
+    "Phí chọn giờ sinh: 1.000.000 – 2.000.000đ",
+    "Giảm đau sinh thường Epi-spin lock: 2.300.000đ",
+    "Giảm đau sinh mổ ngoài màng cứng 3 ngày: 3.000.000đ",
+    "Sàng lọc sơ sinh 5 bệnh: 650.000đ",
+    "Sàng lọc sơ sinh 60 bệnh: 2.500.000đ",
+    "Chăm sóc đặc biệt (nurse care): 1.000.000đ/ngày",
+    "Khâu thẩm mỹ tầng sinh môn: 1.500.000đ"
+  ],
+  "promotions": [
+    "Đăng ký trước 24 tuần: Giảm 8% (Gói Hạnh Phúc & Toàn Diện)",
+    "Đăng ký trước 36 tuần: Giảm 5% (tất cả gói)",
+    "Sinh bé thứ 2 trở lên tại BV: Giảm thêm 5%"
+  ],
+  "refund_policy": [
+    "Hoàn cọc 100% nếu chuyển viện theo chỉ định chuyên môn",
+    "Hoàn cọc nếu sinh cấp cứu tại tuyến huyện (có giấy ra viện)",
+    "Khách chưa khám tại BV: hoàn cọc 100%",
+    "Đã khám: mỗi lần khám trừ 100.000đ vào tiền hoàn"
+  ]
+}
