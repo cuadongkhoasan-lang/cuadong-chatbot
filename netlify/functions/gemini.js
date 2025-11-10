@@ -5,7 +5,7 @@ exports.handler = async (event) => {
   try {
     const { prompt = "" } = JSON.parse(event.body || "{}");
 
-    const apiKey = process.env.GOOGLE_API_KEY; // set ở Bước 4
+    const apiKey = process.env.GEMINI_API_KEY; // set ở Bước 4
     const url =
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" +
       apiKey;
