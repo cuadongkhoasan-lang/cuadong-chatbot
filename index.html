@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
@@ -6,7 +6,6 @@
     <title>Trợ lý tư vấn gói sinh Cửa Đông</title>
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- React CDN + Gemini -->
     <script type="importmap">
       {
         "imports": {
@@ -26,15 +25,14 @@
       import ReactDOM from "react-dom/client";
       import { GoogleGenerativeAI } from "@google/generative-ai";
 
-      // ✅ Logo từ file nội bộ (bạn tải lên cùng thư mục)
       const logoUrl = "./logo.png";
 
-      // ✅ CẤU HÌNH GEMINI (API KEY bạn yêu cầu)
+      // ✅ GEMINI API
       const apiKey = "AIzaSyCL2Doc6pHGVFewYxYulHM91GV0WZsKYpM";
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-      // ✅ Load dữ liệu nội bộ (tạo knowledgeBase phẳng)
+      // ✅ Load JSON
       let knowledgeBase = [];
 
       fetch("data.json")
@@ -53,7 +51,7 @@
                 ([k, v]) => `${pkg.package_name} - ${k}: ${v}`
               ),
               ...pkg.included.map(
-                (item) => `${pkg.package_name} - dịch vụ bao gồm: ${item}`
+                (item) => `${pkg.package_name} - bao gồm: ${item}`
               )
             ]),
 
@@ -63,72 +61,72 @@
           ];
         });
 
-      // ✅ Search đơn giản theo từ khóa
+      // ✅ Search thông minh hơn
       function searchKnowledge(question) {
-        question = question.toLowerCase();
-        return knowledgeBase.filter((line) =>
-          line.toLowerCase().includes(question)
-        );
+        const tokens = question.toLowerCase().split(/\s+/).filter(t => t.length > 1);
+
+        return knowledgeBase.filter(line => {
+          const lower = line.toLowerCase();
+          return tokens.some(token => lower.includes(token));
+        });
       }
 
-      // ✅ Hàm gọi AI
+      // ✅ LUÔN gọi Gemini → JSON chỉ là context
       const getBotResponse = async (message) => {
         const matched = searchKnowledge(message);
 
-        if (matched.length === 0) {
-          return "Trong dữ liệu gói sinh hiện tại chưa có thông tin này. Vui lòng liên hệ hotline 0238.626.9999.";
-        }
+        const context =
+          matched.length > 0
+            ? matched.join("\n")
+            : "KHÔNG CÓ DỮ LIỆU PHÙ HỢP TRONG JSON.\nHãy trả về: Trong dữ liệu gói sinh hiện tại chưa có thông tin này. Vui lòng liên hệ hotline 0238.626.9999.";
 
         const prompt = `
-          Bạn chỉ được phép trả lời dựa trên nội dung sau:
-          ----
-          ${matched.join("\n")}
-          ----
-          Không được dùng kiến thức ngoài dữ liệu.
-          Nếu không có câu trả lời trong dữ liệu → trả lời: "Trong dữ liệu gói sinh hiện tại chưa có thông tin này. Vui lòng liên hệ hotline 0238.626.9999."
-          Câu hỏi của khách: ${message}
+Bạn là trợ lý tư vấn gói sinh của Bệnh viện Cửa Đông.
+
+Bạn CHỈ được trả lời dựa trên dữ liệu dưới đây:
+
+--------
+${context}
+--------
+
+Nếu dữ liệu chứa câu "KHÔNG CÓ DỮ LIỆU PHÙ HỢP TRONG JSON",
+bạn BẮT BUỘC trả về đúng câu sau:
+"Trong dữ liệu gói sinh hiện tại chưa có thông tin này. Vui lòng liên hệ hotline 0238.626.9999."
+
+Câu hỏi của khách: "${message}"
         `;
 
         try {
           const result = await model.generateContent(prompt);
           return result.response.text();
         } catch (error) {
-          console.error(error);
-          return "Lỗi khi kết nối AI. Vui lòng thử lại.";
+          return "Lỗi kết nối AI.";
         }
       };
 
-      // ========================= UI =========================
-
+      // ✅ UI
       const Sender = { USER: 0, BOT: 1 };
 
       const ChatBubble = ({ message }) => {
         const isUser = message.sender === Sender.USER;
 
         if (isUser) {
-          return React.createElement(
-            "div",
-            { className: "flex justify-end" },
-            React.createElement(
-              "div",
-              { className: "bg-blue-700 text-white p-3 rounded-lg max-w-lg shadow" },
-              message.text
-            )
+          return (
+            <div className="flex justify-end">
+              <div className="bg-blue-700 text-white p-3 rounded-lg max-w-lg shadow">
+                {message.text}
+              </div>
+            </div>
           );
         }
 
-        return React.createElement(
-          "div",
-          { className: "flex items-start space-x-3" },
-          React.createElement("img", {
-            src: logoUrl,
-            className: "h-8 w-8 rounded-full bg-white p-1"
-          }),
-          React.createElement(
-            "div",
-            { className: "bg-gray-100 p-3 rounded-lg max-w-lg shadow" },
-            message.text
-          )
+        return (
+          <div className="flex items-start space-x-3">
+            <img src={logoUrl} className="h-8 w-8 rounded-full bg-white p-1" />
+            <div className="bg-gray-100 p-3 rounded-lg max-w-lg shadow">
+              {message.text}
+            </div>
+          </div>
         );
       };
 
@@ -137,59 +135,43 @@
 
         const submit = (e) => {
           e.preventDefault();
-          if (value.trim()) {
-            onSend(value);
-            setValue("");
-          }
+          if (value.trim()) onSend(value);
+          setValue("");
         };
 
-        return React.createElement(
-          "form",
-          { onSubmit: submit, className: "flex items-center space-x-3" },
-          React.createElement("input", {
-            type: "text",
-            value,
-            onChange: (e) => setValue(e.target.value),
-            placeholder: "Nhập câu hỏi...",
-            disabled: isLoading,
-            className:
-              "flex-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-full"
-          }),
-          React.createElement(
-            "button",
-            {
-              type: "submit",
-              disabled: isLoading || !value.trim(),
-              className:
-                "p-3 bg-blue-700 text-white rounded-full disabled:bg-gray-400"
-            },
-            "Gửi"
-          )
+        return (
+          <form onSubmit={submit} className="flex items-center space-x-3">
+            <input
+              type="text"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              placeholder="Nhập câu hỏi..."
+              disabled = {isLoading}
+              className="flex-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-full"
+            />
+            <button
+              type="submit"
+              disabled={isLoading || !value.trim()}
+              className="p-3 bg-blue-700 text-white rounded-full disabled:bg-gray-400"
+            >
+              Gửi
+            </button>
+          </form>
         );
       };
 
-      const Header = () =>
-        React.createElement(
-          "header",
-          { className: "bg-blue-800 shadow-md w-full" },
-          React.createElement(
-            "div",
-            { className: "max-w-7xl mx-auto px-4" },
-            React.createElement(
-              "div",
-              { className: "flex items-center h-16 space-x-3" },
-              React.createElement("img", {
-                src: logoUrl,
-                className: "h-10 w-10 rounded-full bg-white p-1"
-              }),
-              React.createElement(
-                "h1",
-                { className: "text-xl font-bold text-white" },
-                "Trợ lý tư vấn gói sinh Cửa Đông"
-              )
-            )
-          )
-        );
+      const Header = () => (
+        <header className="bg-blue-800 shadow-md w-full">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex items-center h-16 space-x-3">
+              <img src={logoUrl} className="h-10 w-10 rounded-full bg-white p-1" />
+              <h1 className="text-xl font-bold text-white">
+                Trợ lý tư vấn gói sinh Cửa Đông
+              </h1>
+            </div>
+          </div>
+        </header>
+      );
 
       const App = () => {
         const [messages, setMessages] = useState([]);
@@ -204,8 +186,7 @@
           setMessages([
             {
               id: Date.now(),
-              text:
-                "Xin chào! Tôi là Trợ lý tư vấn gói sinh của Bệnh viện Cửa Đông. Tôi có thể hỗ trợ gì cho bạn?",
+              text: "Xin chào! Tôi là Trợ lý tư vấn gói sinh của Bệnh viện Cửa Đông. Tôi có thể hỗ trợ gì cho bạn?",
               sender: Sender.BOT
             }
           ]);
@@ -214,7 +195,6 @@
         const send = async (text) => {
           const userMsg = { id: Date.now(), text, sender: Sender.USER };
           setMessages((prev) => [...prev, userMsg]);
-
           setIsLoading(true);
 
           const botText = await getBotResponse(text);
@@ -224,29 +204,32 @@
           setIsLoading(false);
         };
 
-        return React.createElement(
-          "div",
-          { className: "flex flex-col h-screen bg-blue-50" },
-          React.createElement(Header),
-          React.createElement(
-            "main",
-            { className: "flex-1 overflow-y-auto p-4 space-y-6" },
-            messages.map((m) =>
-              React.createElement(ChatBubble, { key: m.id, message: m })
-            ),
-            React.createElement("div", { ref: endRef })
-          ),
-          React.createElement(
-            "div",
-            { className: "p-4 bg-white border-t" },
-            React.createElement(MessageInput, { onSend: send, isLoading })
-          )
+        return (
+          <div className="flex flex-col h-screen bg-blue-50">
+            <Header />
+            <main className="flex-1 overflow-y-auto p-4 space-y-6">
+              {messages.map((m) => (
+                <ChatBubble key={m.id} message={m} />
+              ))}
+              <div ref={endRef} />
+            </main>
+            <div className="p-4 bg-white border-t">
+              <MessageInput onSend={send} isLoading={isLoading} />
+            </div>
+
+            {/* ✅ Floating Hotline Button */}
+            <a
+              href="tel:02386269999"
+              className="fixed bottom-5 right-5 bg-red-600 text-white px-5 py-3 rounded-full shadow-xl font-bold text-sm hover:bg-red-700 transition"
+            >
+              📞 Gọi 0238.626.9999
+            </a>
+
+          </div>
         );
       };
 
-      ReactDOM.createRoot(document.getElementById("root")).render(
-        React.createElement(App)
-      );
+      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
     </script>
   </body>
 </html>
