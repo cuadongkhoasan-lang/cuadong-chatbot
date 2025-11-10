@@ -1,235 +1,114 @@
 <!DOCTYPE html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Trợ lý tư vấn gói sinh Cửa Đông</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trợ lý gói sinh Cửa Đông</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script type="importmap">
+{
+  "imports": {
+    "@google/generative-ai": "https://esm.run/@google/generative-ai"
+  }
+}
+</script>
+</head>
 
-    <script type="importmap">
-      {
-        "imports": {
-          "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-          "react": "https://esm.sh/react@18.2.0",
-          "@google/generative-ai": "https://esm.run/@google/generative-ai"
-        }
-      }
-    </script>
-  </head>
+<body class="bg-gray-100">
+<div class="max-w-xl mx-auto mt-4 p-4 bg-white rounded shadow">
+  <h2 class="text-xl font-bold text-blue-700 mb-3">Trợ lý tư vấn gói sinh Cửa Đông</h2>
 
-  <body class="bg-gray-100">
-    <div id="root"></div>
+  <div id="chat" class="h-96 overflow-y-auto border p-2 rounded bg-gray-50"></div>
 
-    <script type="module">
-      import React, { useState, useEffect, useRef } from "react";
-      import ReactDOM from "react-dom/client";
-      import { GoogleGenerativeAI } from "@google/generative-ai";
+  <div class="mt-3 flex gap-2">
+    <input id="inp" class="flex-1 border px-3 py-2 rounded" placeholder="Nhập câu hỏi...">
+    <button id="btn" class="bg-blue-600 text-white px-4 py-2 rounded">Gửi</button>
+  </div>
+</div>
 
-      const logoUrl = "./logo.png";
+<!-- Floating hotline -->
+<a href="tel:02386269999"
+   class="fixed bottom-5 right-5 bg-red-600 text-white px-4 py-3 rounded-full shadow-xl font-bold">
+📞 Gọi 0238.626.9999
+</a>
 
-      // ✅ GEMINI API
-      const apiKey = "AIzaSyCL2Doc6pHGVFewYxYulHM91GV0WZsKYpM";
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+<script type="module">
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-      // ✅ Load JSON
-      let knowledgeBase = [];
+const apiKey = "AIzaSyCL2Doc6pHGVFewYxYulHM91GV0WZsKYpM";
+const genAI = new GoogleGenerativeAI(apiKey);
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-      fetch("data.json")
-        .then((res) => res.json())
-        .then((data) => {
-          knowledgeBase = [
-            data.hospital.name,
-            data.hospital.address,
-            data.hospital.hotline,
-            data.hospital.website,
+let knowledge = [];
 
-            ...data.packages.flatMap((pkg) => [
-              pkg.package_name,
-              pkg.room_type,
-              ...Object.entries(pkg.prices).map(
-                ([k, v]) => `${pkg.package_name} - ${k}: ${v}`
-              ),
-              ...pkg.included.map(
-                (item) => `${pkg.package_name} - bao gồm: ${item}`
-              )
-            ]),
+fetch("data.json").then(r => r.json()).then(d => {
+  knowledge = [
+    d.hospital.name, d.hospital.address, d.hospital.hotline, d.hospital.website,
+    ...d.packages.flatMap(p => [
+      p.package_name,
+      p.room_type,
+      ...Object.entries(p.prices).map(([k,v]) => `${p.package_name} - ${k}: ${v}`),
+      ...p.included.map(i => `${p.package_name} - bao gồm: ${i}`)
+    ]),
+    ...d.extra_fees,
+    ...d.promotions,
+    ...d.refund_policy
+  ];
+});
 
-            ...data.extra_fees,
-            ...data.promotions,
-            ...data.refund_policy
-          ];
-        });
+function search(q){
+  const t = q.toLowerCase().split(/\s+/).filter(x => x.length>1);
+  return knowledge.filter(l => {
+    const L = l.toLowerCase();
+    return t.some(k => L.includes(k));
+  });
+}
 
-      // ✅ Search thông minh hơn
-      function searchKnowledge(question) {
-        const tokens = question.toLowerCase().split(/\s+/).filter(t => t.length > 1);
+function addMsg(text, from="bot"){
+  const chat = document.getElementById("chat");
+  const div = document.createElement("div");
+  div.className = from==="bot" ?
+      "bg-gray-200 p-2 my-1 rounded" :
+      "bg-blue-600 text-white p-2 my-1 rounded ml-auto w-fit";
+  div.innerText = text;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
 
-        return knowledgeBase.filter(line => {
-          const lower = line.toLowerCase();
-          return tokens.some(token => lower.includes(token));
-        });
-      }
+document.getElementById("btn").onclick = async () => {
+  const q = document.getElementById("inp").value.trim();
+  if(!q) return;
+  addMsg(q, "user");
+  document.getElementById("inp").value = "";
 
-      // ✅ LUÔN gọi Gemini → JSON chỉ là context
-      const getBotResponse = async (message) => {
-        const matched = searchKnowledge(message);
+  const matched = search(q);
+  const ctx = matched.length ?
+      matched.join("\n") :
+      "KHÔNG CÓ DỮ LIỆU PHÙ HỢP TRONG JSON.\nHãy trả về: Trong dữ liệu gói sinh hiện tại chưa có thông tin này. Vui lòng liên hệ hotline 0238.626.9999.";
 
-        const context =
-          matched.length > 0
-            ? matched.join("\n")
-            : "KHÔNG CÓ DỮ LIỆU PHÙ HỢP TRONG JSON.\nHãy trả về: Trong dữ liệu gói sinh hiện tại chưa có thông tin này. Vui lòng liên hệ hotline 0238.626.9999.";
-
-        const prompt = `
-Bạn là trợ lý tư vấn gói sinh của Bệnh viện Cửa Đông.
-
-Bạn CHỈ được trả lời dựa trên dữ liệu dưới đây:
+  const prompt = `
+Bạn là trợ lý gói sinh. Chỉ trả lời dựa trên dữ liệu sau:
 
 --------
-${context}
+${ctx}
 --------
 
-Nếu dữ liệu chứa câu "KHÔNG CÓ DỮ LIỆU PHÙ HỢP TRONG JSON",
-bạn BẮT BUỘC trả về đúng câu sau:
+Nếu dữ liệu chứa "KHÔNG CÓ DỮ LIỆU PHÙ HỢP TRONG JSON" thì trả về đúng:
 "Trong dữ liệu gói sinh hiện tại chưa có thông tin này. Vui lòng liên hệ hotline 0238.626.9999."
 
-Câu hỏi của khách: "${message}"
-        `;
+Câu hỏi: "${q}"
+  `;
 
-        try {
-          const result = await model.generateContent(prompt);
-          return result.response.text();
-        } catch (error) {
-          return "Lỗi kết nối AI.";
-        }
-      };
+  try{
+    const result = await model.generateContent(prompt);
+    addMsg(result.response.text(), "bot");
+  }catch(e){
+    addMsg("Lỗi kết nối AI.","bot");
+  }
+};
 
-      // ✅ UI
-      const Sender = { USER: 0, BOT: 1 };
+addMsg("Xin chào! Tôi là trợ lý gói sinh của Bệnh viện Cửa Đông. Bạn cần hỗ trợ gì?");
+</script>
 
-      const ChatBubble = ({ message }) => {
-        const isUser = message.sender === Sender.USER;
-
-        if (isUser) {
-          return (
-            <div className="flex justify-end">
-              <div className="bg-blue-700 text-white p-3 rounded-lg max-w-lg shadow">
-                {message.text}
-              </div>
-            </div>
-          );
-        }
-
-        return (
-          <div className="flex items-start space-x-3">
-            <img src={logoUrl} className="h-8 w-8 rounded-full bg-white p-1" />
-            <div className="bg-gray-100 p-3 rounded-lg max-w-lg shadow">
-              {message.text}
-            </div>
-          </div>
-        );
-      };
-
-      const MessageInput = ({ onSend, isLoading }) => {
-        const [value, setValue] = useState("");
-
-        const submit = (e) => {
-          e.preventDefault();
-          if (value.trim()) onSend(value);
-          setValue("");
-        };
-
-        return (
-          <form onSubmit={submit} className="flex items-center space-x-3">
-            <input
-              type="text"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              placeholder="Nhập câu hỏi..."
-              disabled = {isLoading}
-              className="flex-1 px-4 py-2 bg-gray-100 border border-gray-300 rounded-full"
-            />
-            <button
-              type="submit"
-              disabled={isLoading || !value.trim()}
-              className="p-3 bg-blue-700 text-white rounded-full disabled:bg-gray-400"
-            >
-              Gửi
-            </button>
-          </form>
-        );
-      };
-
-      const Header = () => (
-        <header className="bg-blue-800 shadow-md w-full">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex items-center h-16 space-x-3">
-              <img src={logoUrl} className="h-10 w-10 rounded-full bg-white p-1" />
-              <h1 className="text-xl font-bold text-white">
-                Trợ lý tư vấn gói sinh Cửa Đông
-              </h1>
-            </div>
-          </div>
-        </header>
-      );
-
-      const App = () => {
-        const [messages, setMessages] = useState([]);
-        const [isLoading, setIsLoading] = useState(false);
-        const endRef = useRef(null);
-
-        useEffect(() => {
-          endRef.current?.scrollIntoView({ behavior: "smooth" });
-        }, [messages]);
-
-        useEffect(() => {
-          setMessages([
-            {
-              id: Date.now(),
-              text: "Xin chào! Tôi là Trợ lý tư vấn gói sinh của Bệnh viện Cửa Đông. Tôi có thể hỗ trợ gì cho bạn?",
-              sender: Sender.BOT
-            }
-          ]);
-        }, []);
-
-        const send = async (text) => {
-          const userMsg = { id: Date.now(), text, sender: Sender.USER };
-          setMessages((prev) => [...prev, userMsg]);
-          setIsLoading(true);
-
-          const botText = await getBotResponse(text);
-          const botMsg = { id: Date.now() + 1, text: botText, sender: Sender.BOT };
-
-          setMessages((prev) => [...prev, botMsg]);
-          setIsLoading(false);
-        };
-
-        return (
-          <div className="flex flex-col h-screen bg-blue-50">
-            <Header />
-            <main className="flex-1 overflow-y-auto p-4 space-y-6">
-              {messages.map((m) => (
-                <ChatBubble key={m.id} message={m} />
-              ))}
-              <div ref={endRef} />
-            </main>
-            <div className="p-4 bg-white border-t">
-              <MessageInput onSend={send} isLoading={isLoading} />
-            </div>
-
-            {/* ✅ Floating Hotline Button */}
-            <a
-              href="tel:02386269999"
-              className="fixed bottom-5 right-5 bg-red-600 text-white px-5 py-3 rounded-full shadow-xl font-bold text-sm hover:bg-red-700 transition"
-            >
-              📞 Gọi 0238.626.9999
-            </a>
-
-          </div>
-        );
-      };
-
-      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-    </script>
-  </body>
+</body>
 </html>
